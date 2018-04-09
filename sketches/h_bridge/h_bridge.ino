@@ -1,3 +1,7 @@
+#include <encoder.h>
+#include <schmitt_trigger.h>
+#include <range_policy.h>
+
 // This is the code for slot car using H-bridge (L293D) & Teensy 3.2
 
 // define variables
@@ -9,8 +13,9 @@
 // Ultrasonic Sensor
 const int UTRASONIC_TRIG_PIN = 17;
 const int UTRASONIC_ECHO_PIN = 16;
-long duration;
-float distance;
+long duration = 0.0;
+float headway = 0.0;
+double velocity = 0.0;
 
 // H-bridge & motor Pins
 int H_BRIDGE_INPUT_PIN_1 = 21;  // H-bridge leg 1 pin 3--> Teensy Pin 2
@@ -30,9 +35,13 @@ int MOTOR_MIN_PWM = 0;
 int MOTOR_MAX_PWM = 180;
 double MIN_HEADWAY_DISTANCE = 3; // cm
 double MAX_HEADWAY_DISTANCE = 10; //cm
+double MIN_VELOCITY = 0.0 // cm/s
+double MAX_VELOCITY = 10.0; // cm/s
 
 // Speed of sound divided by two
 double SPEED_OF_SOUND_2 = 343/2; // m/s
+
+RangePolicy range_policy(MIN_HEADWAY_DISTANCE, MAX_HEADWAY_DISTANCE, MAX_VELOCITY);
 
 void setup() {
   // define distance to zero
@@ -79,7 +88,7 @@ void loop() {
   duration = pulseIn(UTRASONIC_ECHO_PIN, HIGH);
 
   // calculate the distance
-  distance = duration*SPEED_OF_SOUND_2;
+  headway = duration*SPEED_OF_SOUND_2;
 
   // print
   //Serial.print("Distance ");
@@ -92,11 +101,14 @@ void loop() {
   digitalWrite(H_BRIDGE_INPUT_PIN_1, HIGH);
   digitalWrite(H_BRIDGE_INPUT_PIN_2, LOW);
 
-  int pwm = map(distance, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
-                MIN_HEADWAY_DISTANCE, MAX_HEADWAY_DISTANCE);
+  // Determine the velocity via the range policy and then determine what
+  // PWM value that corresponds to
+  velocity = range_policy.velocity(headway);
+  int pwm = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
+                MIN_VELOCITY, MAX_VELOCITY);
   analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
 
-  if (distance > MIN_HEADWAY_DISTANCE) {
+  if (headway > MIN_HEADWAY_DISTANCE) {
     // Turn on green LED and turn off red LED if we're greater than
     // the minimum distance
     digitalWrite(LED_PIN_RED, LOW);
@@ -109,6 +121,6 @@ void loop() {
   }
 
   Serial.print("Distance ");
-  Serial.println(distance);
+  Serial.println(headway);
   //Serial.println("ON");
 }
