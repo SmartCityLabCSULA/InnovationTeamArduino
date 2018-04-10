@@ -18,28 +18,28 @@ float headway = 0.0;
 double velocity = 0.0;
 
 // H-bridge & motor Pins
-int H_BRIDGE_INPUT_PIN_1 = 21;  // H-bridge leg 1 pin 3--> Teensy Pin 2
-int H_BRIDGE_INPUT_PIN_2 = 22;  // H-bridge leg 2 pin 6--> Teensy Pin 3
-int H_BRIDGE_ENABLE_PIN = 23;  // H-bridge enable Pin 1 --> Teensy Pin 23 x
+const int H_BRIDGE_INPUT_PIN_1 = 21;  // H-bridge leg 1 pin 3--> Teensy Pin 2
+const int H_BRIDGE_INPUT_PIN_2 = 22;  // H-bridge leg 2 pin 6--> Teensy Pin 3
+const int H_BRIDGE_ENABLE_PIN = 23;  // H-bridge enable Pin 1 --> Teensy Pin 23 x
 //int pwmVal;
 
 // LEDs
-int LED_PIN_RED = 19;
-int LED_PIN_GREEN = 20;
-int LED_PIN_ON = 13;
+const int LED_PIN_RED = 19;
+const int LED_PIN_GREEN = 20;
+const int LED_PIN_ON = 13;
 
 // Baud rate
-int BAUD_RATE = 9600;
+const int BAUD_RATE = 9600;
 
-int MOTOR_MIN_PWM = 0;
-int MOTOR_MAX_PWM = 180;
-double MIN_HEADWAY_DISTANCE = 3; // cm
-double MAX_HEADWAY_DISTANCE = 10; //cm
-double MIN_VELOCITY = 0.0 // cm/s
-double MAX_VELOCITY = 10.0; // cm/s
+const int MOTOR_MIN_PWM = 0;
+const int MOTOR_MAX_PWM = 180;
+const double MIN_HEADWAY_DISTANCE = 3; // cm
+const double MAX_HEADWAY_DISTANCE = 10; //cm
+const double MIN_VELOCITY = 0.0 // cm/s
+const double MAX_VELOCITY = 10.0; // cm/s
 
 // Speed of sound divided by two
-double SPEED_OF_SOUND_2 = 343/2; // m/s
+const double SPEED_OF_SOUND_2 = 343/2; // m/s
 
 RangePolicy range_policy(MIN_HEADWAY_DISTANCE, MAX_HEADWAY_DISTANCE, MAX_VELOCITY);
 
