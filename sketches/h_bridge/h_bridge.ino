@@ -32,9 +32,9 @@ const int LED_PIN_ON = 13;
 const int BAUD_RATE = 9600;
 
 const int MOTOR_MIN_PWM = 0;
-const int MOTOR_MAX_PWM = 180;
-const double MIN_HEADWAY_DISTANCE = 3; // cm
-const double MAX_HEADWAY_DISTANCE = 10; //cm
+const int MOTOR_MAX_PWM = 120;
+const double MIN_HEADWAY_DISTANCE = 7; // cm
+const double MAX_HEADWAY_DISTANCE = 20; //cm
 const double MIN_VELOCITY = 0.0 // cm/s
 const double MAX_VELOCITY = 10.0; // cm/s
 
@@ -107,6 +107,19 @@ void loop() {
   int pwm = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
                 MIN_VELOCITY, MAX_VELOCITY);
   analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
+
+  // Logic for using a braking mechanism. Don't try this yet, it makes the range
+  // policy not differentiable
+  // if (velocity >= 0){
+  //   pwm = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
+  //                 MIN_VELOCITY, MAX_VELOCITY);
+  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
+  // } else {
+  //   pwm = BRAKING_PWM;
+  //   digitalWrite(H_BRIDGE_INPUT_PIN_1, LOW);
+  //   digitalWrite(H_BRIDGE_INPUT_PIN_2, HIGH);
+  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm)
+  // }
 
   if (headway > MIN_HEADWAY_DISTANCE) {
     // Turn on green LED and turn off red LED if we're greater than
