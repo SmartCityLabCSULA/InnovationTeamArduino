@@ -68,7 +68,7 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   // Calculating the distance
   distance = (duration * 0.034) / 2;
-  delay(150);
+  // delay(150);
   // Prints the distance on the Serial Monitor
   //Serial.print("Distance: ");
   time = time + 0.02;
@@ -98,6 +98,7 @@ void loop() {
     digitalWrite(ledPinG, LOW);
     digitalWrite(ledPinR, HIGH);
     analogWrite(enablePin, 80);
+    // Apply the reverse current (i.e., brake)
     digitalWrite(motorPin2, LOW);
     digitalWrite(motorPin7, HIGH);
     //delay(300);
@@ -129,4 +130,3 @@ void loop() {
   }
 }
 }
-
