@@ -32,10 +32,10 @@ const int LED_PIN_ON = 13;
 const int BAUD_RATE = 9600;
 
 const int MOTOR_MIN_PWM = 0;
-const int MOTOR_MAX_PWM = 120;
+const int MOTOR_MAX_PWM = 100;
 const double MIN_HEADWAY_DISTANCE = 7; // cm
 const double MAX_HEADWAY_DISTANCE = 20; //cm
-const double MIN_VELOCITY = 0.0 // cm/s
+const double MIN_VELOCITY = 0.0; // cm/s
 const double MAX_VELOCITY = 10.0; // cm/s
 
 // Speed of sound divided by two
@@ -104,8 +104,9 @@ void loop() {
   // Determine the velocity via the range policy and then determine what
   // PWM value that corresponds to
   velocity = range_policy.velocity(headway);
-  int pwm = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
-                MIN_VELOCITY, MAX_VELOCITY);
+  int pwm = map(headway,
+                MIN_VELOCITY, MAX_VELOCITY,
+                MOTOR_MIN_PWM, MOTOR_MAX_PWM);
   analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
 
   // Logic for using a braking mechanism. Don't try this yet, it makes the range
