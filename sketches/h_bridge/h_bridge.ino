@@ -9,8 +9,13 @@
 //float Distance;
 
 // Ultrasonic Sensor
-const int UTRASONIC_TRIG_PIN = 14;
-const int UTRASONIC_ECHO_PIN = 15;
+//const int UTRASONIC_TRIG_PIN = 14;
+//const int UTRASONIC_ECHO_PIN = 15;
+
+// For Brian's car
+const int UTRASONIC_TRIG_PIN = 12;
+const int UTRASONIC_ECHO_PIN = 11;
+
 long duration = 0.0;
 float headway = 0.0;
 double velocity = 0.0;
@@ -31,8 +36,8 @@ const int BAUD_RATE = 9600;
 
 
 
-const int MOTOR_MIN_PWM = 2;
-const int MOTOR_MAX_PWM = 180;
+//const int MOTOR_MIN_PWM = 2;
+const int MOTOR_MAX_PWM = 150;
 const double MIN_HEADWAY_DISTANCE = 15; // cm
 const double MAX_HEADWAY_DISTANCE = 40; //cm
 const double MIN_VELOCITY = 0.0; // cm/s
