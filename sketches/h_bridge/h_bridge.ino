@@ -1,5 +1,3 @@
-#include <encoder.h>
-#include <schmitt_trigger.h>
 #include <range_policy.h>
 
 // This is the code for slot car using H-bridge (L293D) & Teensy 3.2
@@ -11,8 +9,8 @@
 //float Distance;
 
 // Ultrasonic Sensor
-const int UTRASONIC_TRIG_PIN = 17;
-const int UTRASONIC_ECHO_PIN = 16;
+const int UTRASONIC_TRIG_PIN = 14;
+const int UTRASONIC_ECHO_PIN = 15;
 long duration = 0.0;
 float headway = 0.0;
 double velocity = 0.0;
@@ -31,17 +29,23 @@ const int LED_PIN_ON = 13;
 // Baud rate
 const int BAUD_RATE = 9600;
 
-const int MOTOR_MIN_PWM = 0;
-const int MOTOR_MAX_PWM = 100;
-const double MIN_HEADWAY_DISTANCE = 7; // cm
-const double MAX_HEADWAY_DISTANCE = 20; //cm
+
+
+const int MOTOR_MIN_PWM = 2;
+const int MOTOR_MAX_PWM = 180;
+const double MIN_HEADWAY_DISTANCE = 15; // cm
+const double MAX_HEADWAY_DISTANCE = 40; //cm
 const double MIN_VELOCITY = 0.0; // cm/s
 const double MAX_VELOCITY = 10.0; // cm/s
 
+// Scale to convert velocity to PWM
+const int VELOCITY_TO_PWM = MOTOR_MAX_PWM / MAX_VELOCITY;
+
 // Speed of sound divided by two
-const double SPEED_OF_SOUND_2 = 343/2; // m/s
+const double SPEED_OF_SOUND_2 = 0.0343/2; // cm/s
 
 RangePolicy range_policy(MIN_HEADWAY_DISTANCE, MAX_HEADWAY_DISTANCE, MAX_VELOCITY);
+int pwm_value;
 
 void setup() {
   // define distance to zero
@@ -104,22 +108,23 @@ void loop() {
   // Determine the velocity via the range policy and then determine what
   // PWM value that corresponds to
   velocity = range_policy.velocity(headway);
-  int pwm = map(headway,
-                MIN_VELOCITY, MAX_VELOCITY,
-                MOTOR_MIN_PWM, MOTOR_MAX_PWM);
-  analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
+//  pwm_value = map(headway,
+//                MIN_VELOCITY, MAX_VELOCITY,
+//                MOTOR_MIN_PWM, MOTOR_MAX_PWM);
+  pwm_value = VELOCITY_TO_PWM * velocity;
+  analogWrite(H_BRIDGE_ENABLE_PIN, pwm_value);
 
   // Logic for using a braking mechanism. Don't try this yet, it makes the range
   // policy not differentiable
   // if (velocity >= 0){
-  //   pwm = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
+  //   pwm_value = map(headway, MOTOR_MIN_PWM, MOTOR_MAX_PWM,
   //                 MIN_VELOCITY, MAX_VELOCITY);
-  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm);
+  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm_value);
   // } else {
-  //   pwm = BRAKING_PWM;
+  //   pwm_value = BRAKING_PWM;
   //   digitalWrite(H_BRIDGE_INPUT_PIN_1, LOW);
   //   digitalWrite(H_BRIDGE_INPUT_PIN_2, HIGH);
-  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm)
+  //   analogWrite(H_BRIDGE_ENABLE_PIN, pwm_value)
   // }
 
   if (headway > MIN_HEADWAY_DISTANCE) {
@@ -134,7 +139,10 @@ void loop() {
     digitalWrite(LED_PIN_GREEN, LOW);
   }
 
-  Serial.print("Distance ");
-  Serial.println(headway);
+  Serial.print("Distance :\t");
+  Serial.print(headway);
+  Serial.print("\tPWM:\t");
+  Serial.println(pwm_value);
+  
   //Serial.println("ON");
 }
