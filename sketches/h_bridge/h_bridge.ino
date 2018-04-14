@@ -1,21 +1,31 @@
 #include <range_policy.h>
-
+#include <XBee.h>
 // This is the code for slot car using H-bridge (L293D) & Teensy 3.2
+
+//XBee configuration
+XBee xbee = XBee();
+// allocate two bytes for to hold a 10-bit analog reading
+uint8_t payload[] = { 0, 0, 0, 0 }; //data to be transmitted: Car ID, Scenario, Velocity, Headway
+XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x4106a272);
+Tx64Request tx = Tx64Request(addr64, payload, sizeof(payload));
+XBeeResponse response = XBeeResponse();
+// create reusable response objects for responses we expect to handle
+Rx16Response rx16 = Rx16Response();
+Rx64Response rx64 = Rx64Response();
 
 // define variables
 
+int CAR_ID = 3;
+int SCENARIO_RECEIVED;
+int CAR_ID_RECEIVED;//Used for the filter
+int j;
 //IR sensor
 //int sensorValue;
 //float Distance;
 
 // Ultrasonic Sensor
-//const int UTRASONIC_TRIG_PIN = 14;
-//const int UTRASONIC_ECHO_PIN = 15;
-
-// For Brian's car
-const int UTRASONIC_TRIG_PIN = 12;
-const int UTRASONIC_ECHO_PIN = 11;
-
+const int UTRASONIC_TRIG_PIN = 14;
+const int UTRASONIC_ECHO_PIN = 15;
 long duration = 0.0;
 float headway = 0.0;
 double velocity = 0.0;
@@ -32,11 +42,11 @@ const int LED_PIN_GREEN = 20;
 const int LED_PIN_ON = 13;
 
 // Baud rate
-const int BAUD_RATE = 9600;
+const int BAUD_RATE = 115200;
 
 
 
-//const int MOTOR_MIN_PWM = 2;
+const int MOTOR_MIN_PWM = 2;
 const int MOTOR_MAX_PWM = 150;
 const double MIN_HEADWAY_DISTANCE = 15; // cm
 const double MAX_HEADWAY_DISTANCE = 40; //cm
@@ -47,7 +57,7 @@ const double MAX_VELOCITY = 10.0; // cm/s
 const int VELOCITY_TO_PWM = MOTOR_MAX_PWM / MAX_VELOCITY;
 
 // Speed of sound divided by two
-const double SPEED_OF_SOUND_2 = 0.0343/2; // cm/s
+const double SPEED_OF_SOUND_2 = 0.0343 / 2; // cm/s
 
 RangePolicy range_policy(MIN_HEADWAY_DISTANCE, MAX_HEADWAY_DISTANCE, MAX_VELOCITY);
 int pwm_value;
@@ -78,11 +88,15 @@ void setup() {
 
   // baud rate. May have to change the frequency...
   Serial.begin(BAUD_RATE);
+  Serial1.begin(115200);//configured teensy ports for communication
+  xbee.setSerial(Serial1);
   digitalWrite(LED_PIN_ON, HIGH);
 }
 
 void loop() {
-
+  payload[0] = CAR_ID;//Each car had a unique ID assigned
+  payload[1] = 1;//Scenario 1: Stop and Go Waves
+  ReceiveData();
 
   // Ultrasonic Sensor
   digitalWrite(UTRASONIC_TRIG_PIN, LOW);
@@ -97,8 +111,9 @@ void loop() {
   duration = pulseIn(UTRASONIC_ECHO_PIN, HIGH);
 
   // calculate the distance
-  headway = duration*SPEED_OF_SOUND_2;
-
+  headway = duration * SPEED_OF_SOUND_2;
+  payload[3] = headway;
+  ReceiveData();
   // print
   //Serial.print("Distance ");
   //Serial.println(distance);
@@ -113,11 +128,13 @@ void loop() {
   // Determine the velocity via the range policy and then determine what
   // PWM value that corresponds to
   velocity = range_policy.velocity(headway);
-//  pwm_value = map(headway,
-//                MIN_VELOCITY, MAX_VELOCITY,
-//                MOTOR_MIN_PWM, MOTOR_MAX_PWM);
+  //  pwm_value = map(headway,
+  //                MIN_VELOCITY, MAX_VELOCITY,
+  //                MOTOR_MIN_PWM, MOTOR_MAX_PWM);
   pwm_value = VELOCITY_TO_PWM * velocity;
   analogWrite(H_BRIDGE_ENABLE_PIN, pwm_value);
+  payload[2]=pwm_value;
+  ReceiveData();
 
   // Logic for using a braking mechanism. Don't try this yet, it makes the range
   // policy not differentiable
@@ -148,6 +165,26 @@ void loop() {
   Serial.print(headway);
   Serial.print("\tPWM:\t");
   Serial.println(pwm_value);
-  
+
   //Serial.println("ON");
+  ReceiveData();
+}
+void ReceiveData() {
+  xbee.send(tx);
+  xbee.readPacket(10);
+  if (xbee.getResponse().isAvailable()) {
+    if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
+      xbee.getResponse().getRx16Response(rx16);
+      CAR_ID_RECEIVED = rx16.getData(1);
+      //scenario = rx16.getData(0);
+    }
+//    if (scenario == 0) {
+//      contS1 = false;
+//    }
+  }
+  if (CAR_ID_RECEIVED == CAR_ID) {
+    for (j = 0; j < 5; j++) {
+      xbee.send(tx);
+    }
+  }
 }
