@@ -93,7 +93,7 @@ void setup() {
 
 void loop() {
 
-  current_time = (double) millis() - start_time - previous_time;
+  current_time = (double) millis() - start_time;
   delta_time = std::abs((current_time - previous_time) / 1000);
   if (accel.available()) {
     // First, use accel.read() to read the new variables:
@@ -114,7 +114,7 @@ void loop() {
         accel_y = 0.0;
       }
 
-      current_velocity = previous_velocity + accel_y * delta_time;
+      current_velocity += accel_y * delta_time;
       previous_velocity = current_velocity;
     }
   }
@@ -145,6 +145,12 @@ void loop() {
   ReceiveData();
   previous_headway = current_headway;
   previous_time = current_time;
+  Serial.print("V:\t"); Serial.print(current_velocity); Serial.print("\t");
+  Serial.print("A:\t"); Serial.print(accel_y); Serial.print("\t");
+  Serial.print("ct:\t"); Serial.print(current_time); Serial.print("\t");
+  Serial.print("pt:\t"); Serial.print(previous_time); Serial.print("\t");
+  Serial.print("dt:\t"); Serial.print(delta_time); Serial.print("\t");
+  Serial.print("A bias:\t"); Serial.println(accel_y_offset);
 }
 
 
